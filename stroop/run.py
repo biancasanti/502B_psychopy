@@ -5,7 +5,7 @@ import csv
 import pandas as pd
 from psychopy import core, visual, event, logging
 
-PATH_TRIALS = 'trials.csv'
+PATH_TRIALS = 'stroop/trials.csv'
 
 
 def main(sid: str) -> None:
