@@ -22,15 +22,17 @@ def main(subid: str) -> None:
     logging.info(f'Starting session subid={subid}')
 
     # -- WINDOW -- #
-    win = visual.Window(size=[800, 800], fullscr=False, color='white', name='Window')
+    # win = visual.Window(size=[800, 800], fullscr=False, color='white', name='Window')
+    win = visual.Window(fullscr=True, color='white', name='Window', units='pix')
 
     # -- STIMULI + DURATIONS -- #
-    waiting_screen = visual.TextStim(win = win, pos = (0, 0), text = "waiting for scanner input", color = "black")
+    waiting_screen = visual.TextStim(win = win, pos = (0, 0), text = "waiting for scanner input", 
+                                     color = "black", height = 60)
     
-    fixation = visual.TextStim(win=win, pos=(0, 0), text='+', color='black')
+    fixation = visual.TextStim(win=win, pos=(0, 0), text='+', color='black', height = 60)
     fix_dur_block = 14.0
 
-    langloc = visual.TextStim(win=win, pos=(0, 0), color = 'black', text='')
+    langloc = visual.TextStim(win=win, pos=(0, 0), color = 'black', text='', height = 60)
     word_duration = 0.45
     sentence_duration = 5.40
 
@@ -95,8 +97,14 @@ def main(subid: str) -> None:
             # print(trial)   
             # print("starting trial")
 
-            # Fixation block every 12 trials, including at beginning and end
-            if (t_idx == 0) or (trial_num % 12 == 0):
+            keys = event.getKeys()
+            if keys:
+                if 'escape' in keys:
+                    win.close() # Optional: explicitly close the window first
+                    core.quit()
+
+            # Long fixation block at beginning of experiment 
+            if t_idx == 0:
                 logging.data(f"Long fixation")
                 show_for(fixation, fix_dur_block)
             
@@ -126,6 +134,11 @@ def main(subid: str) -> None:
 
             # ITI (fixation)
             show_for(iti, iti_duration)
+
+            # Long fixation block every 12 trials at the end of the trial, including at end
+            if trial_num % 12 == 0:
+                logging.data(f"Long fixation")
+                show_for(fixation, fix_dur_block)
 
         logging.info('Session finished normally.')
 

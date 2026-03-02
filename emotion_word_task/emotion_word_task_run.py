@@ -6,9 +6,11 @@ import argparse
 import pandas as pd
 from psychopy import core, visual, event, logging
 from psychopy.hardware import keyboard
+from psychopy.preferences import prefs
 
 PATH_TRIALS = 'emotion_word_task/shuffled_trials.csv'
 
+# prefs.general['shutdownKey'] = 'escape'
 
 def main(subid: str) -> None:
     # -- CONFIG + LOGGING -- #
@@ -19,17 +21,22 @@ def main(subid: str) -> None:
     logging.LogFile(str(log_path), level=logging.INFO, filemode='w')
     logging.info(f'Starting session subid={subid}')
 
-    # -- WINDOW -- #
-    win = visual.Window(size=[1000, 1000], fullscr=False, color='white', name='Window')
+    # # set global quit key
+    # event.globalKeys.clear()
+    # event.globalKeys.add(key='escape', func=core.quit)
 
+    # -- WINDOW -- #
+    # win = visual.Window(size=[1000, 1000], fullscr=False, color='white', name='Window')
+    win = visual.Window(fullscr=True, color='white', name='Window', units='pix')
 
     # -- STIMULI + DURATIONS -- #
-    waiting_screen = visual.TextStim(win = win, pos = (0, 0), text = "waiting for scanner input", color = "black")
+    waiting_screen = visual.TextStim(win = win, pos = (0, 0), text = "waiting for scanner input", 
+                                     color = "black", height = 60)
 
-    fixation = visual.TextStim(win=win, pos=(0, 0), text='+', color='black')
+    fixation = visual.TextStim(win=win, pos=(0, 0), text='+', color='black', height = 60)
     fix_dur_block = 10.0
 
-    emotion_word = visual.TextStim(win=win, pos=(0, 0), color = 'black', text='')
+    emotion_word = visual.TextStim(win=win, pos=(0, 0), color = 'black', text='', height = 60)
     word_duration = 2.0
 
     iti_duration = 2.0
@@ -81,8 +88,15 @@ def main(subid: str) -> None:
             word = str(trial.word)
             logging.data(f'Trial {t_idx} start: word={word}')
 
-            # Fixation block every 24 trials, including at beginning and end
-            if t_idx == 0 or (t_idx + 1) % 24 == 0:
+            keys = event.getKeys()
+            if keys:
+                if 'escape' in keys:
+                    win.close() # Optional: explicitly close the window first
+                    core.quit()
+
+            # Fixation block at beginning
+            if t_idx == 0:
+                logging.data(f"Long fixation")
                 show_for(fixation, fix_dur_block)
 
             # Word presentation
@@ -94,6 +108,11 @@ def main(subid: str) -> None:
 
             # ITI (fixation)
             show_for(fixation, iti_duration)
+
+            # Fixation block every 24 trials, including at end
+            if (t_idx + 1) % 24 == 0:
+                logging.data(f"Long fixation")
+                show_for(fixation, fix_dur_block)
 
         logging.info('Session finished normally.')
 
